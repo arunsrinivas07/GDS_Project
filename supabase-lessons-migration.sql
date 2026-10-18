@@ -108,8 +108,8 @@ grant select, insert, update on public.lesson_progress to authenticated;
 grant all on public.lessons, public.lesson_progress to service_role;
 
 
--- ─── 4. Seed: one sample lesson ──────────────────────────────────────────────
--- Replace bunny_video_id and pdf_path with real values before running.
+-- ─── 4. Seed: sample lessons ───────────────────────────────────────────────
+-- Uses the same Bunny video and notes for demonstration until new videos are ready.
 
 insert into public.lessons (
   course_id, slug, title, description,
@@ -123,6 +123,86 @@ select
   'REPLACE_WITH_YOUR_BUNNY_VIDEO_ID',
   '/notes/gds-chapter-1-introduction.pdf',
   1, true, 2700
+from public.courses c
+where c.slug = 'gds-starter-pass'
+on conflict (slug) do nothing;
+
+insert into public.lessons (
+  course_id, slug, title, description,
+  bunny_video_id, pdf_path, sort_order, is_published, duration_sec
+)
+select
+  c.id,
+  'gds-chapter-2-post-office-guide-part-1',
+  'Chapter 2: Post Office Guide Part 1 & Basic Terminology',
+  'Comprehensive breakdown of Post Office Guide Part 1, postal articles, sorting rules, and organizational setup.',
+  'REPLACE_WITH_YOUR_BUNNY_VIDEO_ID',
+  '/notes/gds-chapter-1-introduction.pdf',
+  2, true, 3150
+from public.courses c
+where c.slug = 'gds-starter-pass'
+on conflict (slug) do nothing;
+
+insert into public.lessons (
+  course_id, slug, title, description,
+  bunny_video_id, pdf_path, sort_order, is_published, duration_sec
+)
+select
+  c.id,
+  'gds-chapter-3-postal-manual-volume-5',
+  'Chapter 3: Postal Manual Volume V (Definitions & Duties)',
+  'In-depth study of Postal Manual Volume V definitions, mail transmission rules, and Branch Post Master (BPM) duties.',
+  'REPLACE_WITH_YOUR_BUNNY_VIDEO_ID',
+  '/notes/gds-chapter-1-introduction.pdf',
+  3, true, 2880
+from public.courses c
+where c.slug = 'gds-starter-pass'
+on conflict (slug) do nothing;
+
+insert into public.lessons (
+  course_id, slug, title, description,
+  bunny_video_id, pdf_path, sort_order, is_published, duration_sec
+)
+select
+  c.id,
+  'gds-chapter-4-mail-products-services',
+  'Chapter 4: Premium Mail Products & Financial Services',
+  'Speed Post, Registered Mail, Parcel, POSB (Savings Bank), Sukanya Samriddhi Account, and IPPB integration.',
+  'REPLACE_WITH_YOUR_BUNNY_VIDEO_ID',
+  '/notes/gds-chapter-1-introduction.pdf',
+  4, true, 3420
+from public.courses c
+where c.slug = 'gds-starter-pass'
+on conflict (slug) do nothing;
+
+insert into public.lessons (
+  course_id, slug, title, description,
+  bunny_video_id, pdf_path, sort_order, is_published, duration_sec
+)
+select
+  c.id,
+  'gds-chapter-5-mathematics-basics',
+  'Chapter 5: Arithmetic & Quantitative Aptitude for GDS',
+  'Core mathematical concepts: Number Systems, Percentages, Profit & Loss, Simple Interest, and Time & Work.',
+  'REPLACE_WITH_YOUR_BUNNY_VIDEO_ID',
+  '/notes/gds-chapter-1-introduction.pdf',
+  5, true, 2520
+from public.courses c
+where c.slug = 'gds-starter-pass'
+on conflict (slug) do nothing;
+
+insert into public.lessons (
+  course_id, slug, title, description,
+  bunny_video_id, pdf_path, sort_order, is_published, duration_sec
+)
+select
+  c.id,
+  'gds-chapter-6-mock-exam-walkthrough',
+  'Chapter 6: Previous Year Question Paper Analysis & Mock Strategy',
+  'Step-by-step solution walkthrough of recent circle exam papers and time-saving shortcut strategies.',
+  'REPLACE_WITH_YOUR_BUNNY_VIDEO_ID',
+  '/notes/gds-chapter-1-introduction.pdf',
+  6, true, 3600
 from public.courses c
 where c.slug = 'gds-starter-pass'
 on conflict (slug) do nothing;

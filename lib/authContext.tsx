@@ -28,7 +28,7 @@ interface AuthContextType {
     email: string,
     token: string
   ) => Promise<{ success: boolean; error?: string }>;
-  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: (nextPath?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   setUserProfile: (profile: StudentProfile) => void;
   isConfigured: boolean;
@@ -276,10 +276,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // 4. Google OAuth Sign In
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = async (nextPath = "/dashboard") => {
     if (isSupabaseConfigured && supabase) {
       try {
-        const redirectTo = `${window.location.origin}/auth/callback?next=/dashboard`;
+        const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
         const { error } = await supabase.auth.signInWithOAuth({
           provider: "google",
           options: {

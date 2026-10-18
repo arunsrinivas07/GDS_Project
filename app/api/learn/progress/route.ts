@@ -50,11 +50,16 @@ export async function POST(req: NextRequest) {
 
     const studentId = authData.user.id;
 
+    // Handle composite virtual lesson IDs (e.g. {uuid}-{slug})
+    const actualLessonId = lessonId.includes("-gds-chapter-")
+      ? lessonId.split("-gds-chapter-")[0]
+      : lessonId;
+
     // Verify the lesson exists and is published (prevents phantom lesson IDs).
     const { data: lesson } = await supabase
       .from("lessons")
       .select("id, course_id")
-      .eq("id", lessonId)
+      .eq("id", actualLessonId)
       .eq("is_published", true)
       .maybeSingle();
 
@@ -81,6 +86,9 @@ export async function POST(req: NextRequest) {
 
     // Upsert progress — student_id is always the authenticated user.
     const now = new Date().toISOString();
+    const hasCompletedField = typeof body?.completed === "boolean";
+    const completedVal = Boolean(body?.completed);
+
     const { error: upsertError } = await supabase
       .from("lesson_progress")
       .upsert(
@@ -88,9 +96,9 @@ export async function POST(req: NextRequest) {
           student_id: studentId,
           lesson_id: lessonId,
           ...(lastPosition !== null && { last_position: lastPosition }),
-          ...(markCompleted && {
-            completed: true,
-            completed_at: now,
+          ...(hasCompletedField && {
+            completed: completedVal,
+            completed_at: completedVal ? now : null,
           }),
           updated_at: now,
         },

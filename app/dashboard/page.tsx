@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
 
-export default function StudentDashboard() {
+function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const justEnrolled = searchParams.get("enrolled") === "true";
@@ -133,16 +133,6 @@ export default function StudentDashboard() {
                 GDS Aspirant • {studentState} Postal Circle • {planName}
               </p>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:text-brand-red hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
-            >
-              <LogOut size={15} />
-              <span>Sign Out</span>
-            </button>
           </div>
         </div>
 
@@ -346,30 +336,17 @@ export default function StudentDashboard() {
                 </div>
               </div>
             </div>
-
-            {/* Certificate Preview Card */}
-            <div className="bg-gradient-to-br from-charcoal via-gray-900 to-gray-800 text-white rounded-3xl p-6 sm:p-7 relative overflow-hidden shadow-lg">
-              <div className="relative z-10">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-3">
-                  <Award size={22} className="text-amber-400" />
-                </div>
-                <h4 className="font-heading font-extrabold text-base mb-1">
-                  GDS Verified Certificate
-                </h4>
-                <p className="text-xs text-gray-400 mb-4 leading-relaxed">
-                  Complete all modules and achieve 60%+ in final mock test to unlock your verified digital certificate.
-                </p>
-                <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mb-2">
-                  <div className="bg-amber-400 h-full w-[68%]" />
-                </div>
-                <p className="text-[11px] text-amber-300 font-semibold">
-                  68% requirement fulfilled
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function StudentDashboard() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-warm" />}>
+      <DashboardContent />
+    </Suspense>
   );
 }

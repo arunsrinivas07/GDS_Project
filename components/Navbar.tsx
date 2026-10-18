@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X, User } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
+import { LogOut } from 'lucide-react';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -17,8 +18,9 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Hide the global website navbar on the learning / video player page
-  if (pathname?.startsWith("/learn")) {
+  const isLearnPage = pathname?.startsWith("/learn");
+
+  if (isLearnPage) {
     return null;
   }
 
@@ -92,13 +94,25 @@ export default function Navbar() {
             {/* Desktop CTAs */}
             <div className="hidden md:flex items-center gap-2.5">
               {user ? (
-                <Link
-                  href="/learn/gds-chapter-1-introduction"
-                  className="bg-brand-red text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-red-dark transition-colors shadow-sm hover:shadow flex items-center gap-2 cursor-pointer"
-                >
-                  <User size={16} />
-                  <span>My Lessons</span>
-                </Link>
+                <>
+                  <button
+                    onClick={async () => {
+                      await logout();
+                      window.location.href = "/login";
+                    }}
+                    className="px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:text-brand-red hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
+                  >
+                    <LogOut />
+                    <span>Sign Out</span>
+                  </button>
+                  <Link
+                    href="/learn/gds-chapter-1-introduction"
+                    className="bg-brand-red text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-red-dark transition-colors shadow-sm hover:shadow flex items-center gap-2 cursor-pointer"
+                  >
+                    <User size={16} />
+                    <span>My Lessons</span>
+                  </Link>
+                </>
               ) : (
                 <>
                   <Link
@@ -142,13 +156,25 @@ export default function Navbar() {
               ))}
               <div className="pt-3 space-y-2 border-t border-gray-100/60 mt-2">
                 {user ? (
-                  <Link
-                    href="/learn/gds-chapter-1-introduction"
-                    className="block bg-brand-red text-white text-sm font-semibold px-5 py-3 rounded-xl text-center cursor-pointer hover:bg-brand-red-dark transition-colors"
-                    onClick={() => setOpen(false)}
-                  >
-                    My Lessons
-                  </Link>
+                  <>
+                    <Link
+                      href="/learn/gds-chapter-1-introduction"
+                      className="block bg-brand-red text-white text-sm font-semibold px-5 py-3 rounded-xl text-center cursor-pointer hover:bg-brand-red-dark transition-colors"
+                      onClick={() => setOpen(false)}
+                    >
+                      My Lessons
+                    </Link>
+                    <button
+                      onClick={async () => {
+                        setOpen(false);
+                        await logout();
+                        window.location.href = "/login";
+                      }}
+                      className="w-full text-sm font-semibold py-2.5 px-3 rounded-xl text-center text-charcoal hover:bg-gray-50 hover:text-brand-red transition-colors cursor-pointer"
+                    >
+                      Sign Out
+                    </button>
+                  </>
                 ) : (
                   <>
                     <Link
