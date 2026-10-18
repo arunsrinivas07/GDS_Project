@@ -1,0 +1,88 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.profiles (
+  id uuid NOT NULL,
+  full_name text,
+  email text,
+  phone text,
+  state text,
+  role text NOT NULL DEFAULT 'student'::text CHECK (role = ANY (ARRAY['student'::text, 'admin'::text, 'instructor'::text])),
+  avatar_url text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.courses (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  slug text NOT NULL UNIQUE CHECK (btrim(slug) <> ''::text),
+  title text NOT NULL,
+  description text,
+  price_inr integer NOT NULL CHECK (price_inr >= 0),
+  mrp_inr integer,
+  validity_days integer NOT NULL DEFAULT 365 CHECK (validity_days > 0),
+  is_published boolean NOT NULL DEFAULT true,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT courses_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.enrollments (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  student_id uuid NOT NULL,
+  course_id uuid NOT NULL,
+  status text NOT NULL DEFAULT 'active'::text CHECK (status = ANY (ARRAY['active'::text, 'expired'::text, 'suspended'::text, 'cancelled'::text])),
+  started_at timestamp with time zone NOT NULL DEFAULT now(),
+  expires_at timestamp with time zone,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT enrollments_pkey PRIMARY KEY (id),
+  CONSTRAINT enrollments_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.profiles(id),
+  CONSTRAINT enrollments_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id)
+);
+CREATE TABLE public.payments (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  student_id uuid NOT NULL,
+  course_id uuid NOT NULL,
+  order_id text NOT NULL UNIQUE CHECK (btrim(order_id) <> ''::text),
+  provider text NOT NULL DEFAULT 'razorpay'::text CHECK (provider = 'razorpay'::text),
+  amount_inr integer NOT NULL CHECK (amount_inr > 0),
+  currency text NOT NULL DEFAULT 'INR'::text CHECK (currency = 'INR'::text),
+  status text NOT NULL DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['pending'::text, 'captured'::text, 'failed'::text, 'refunded'::text])),
+  provider_payment_id text CHECK (provider_payment_id IS NULL OR btrim(provider_payment_id) <> ''::text),
+  provider_signature text,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT payments_pkey PRIMARY KEY (id),
+  CONSTRAINT payments_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.profiles(id),
+  CONSTRAINT payments_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id)
+);
+CREATE TABLE public.lessons (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  course_id uuid NOT NULL,
+  slug text NOT NULL UNIQUE CHECK (btrim(slug) <> ''::text),
+  title text NOT NULL CHECK (btrim(title) <> ''::text),
+  description text,
+  bunny_video_id text CHECK (bunny_video_id IS NULL OR btrim(bunny_video_id) <> ''::text),
+  pdf_path text CHECK (pdf_path IS NULL OR pdf_path ~~ '/%'::text),
+  sort_order integer NOT NULL DEFAULT 0,
+  is_published boolean NOT NULL DEFAULT true,
+  duration_sec integer CHECK (duration_sec IS NULL OR duration_sec > 0),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT lessons_pkey PRIMARY KEY (id),
+  CONSTRAINT lessons_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id)
+);
+CREATE TABLE public.lesson_progress (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  student_id uuid NOT NULL,
+  lesson_id uuid NOT NULL,
+  last_position integer CHECK (last_position IS NULL OR last_position >= 0),
+  completed boolean NOT NULL DEFAULT false,
+  completed_at timestamp with time zone,
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT lesson_progress_pkey PRIMARY KEY (id),
+  CONSTRAINT lesson_progress_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.profiles(id),
+  CONSTRAINT lesson_progress_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.lessons(id)
+);
