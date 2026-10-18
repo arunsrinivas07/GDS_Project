@@ -10,6 +10,17 @@ export async function GET(request: Request) {
   const type = requestUrl.searchParams.get("type") as EmailOtpType | null;
   const next = requestUrl.searchParams.get("next") || "/dashboard";
 
+  // Derive the public origin reliably (handles Vercel / reverse proxies / production domains)
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+  
+  const origin = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : siteUrl
+    ? siteUrl.replace(/\/$/, "")
+    : requestUrl.origin;
+
   const supabaseUrl =
     process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
   const supabaseAnonKey =
@@ -38,11 +49,11 @@ export async function GET(request: Request) {
       try {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (!error) {
-          return NextResponse.redirect(new URL(next, request.url));
+          return NextResponse.redirect(new URL(next, origin));
         }
         console.error("Auth callback code exchange error:", error.message);
         return NextResponse.redirect(
-          new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url)
+          new URL(`/login?error=${encodeURIComponent(error.message)}`, origin)
         );
       } catch (err: any) {
         console.error("Auth callback exception:", err);
@@ -56,11 +67,11 @@ export async function GET(request: Request) {
           type,
         });
         if (!error) {
-          return NextResponse.redirect(new URL(next, request.url));
+          return NextResponse.redirect(new URL(next, origin));
         }
         console.error("Auth callback token_hash verify error:", error.message);
         return NextResponse.redirect(
-          new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url)
+          new URL(`/login?error=${encodeURIComponent(error.message)}`, origin)
         );
       } catch (err: any) {
         console.error("Auth callback token_hash exception:", err);
@@ -69,7 +80,7 @@ export async function GET(request: Request) {
   }
 
   // Redirect to dashboard or designated next path
-  return NextResponse.redirect(new URL(next, request.url));
+  return NextResponse.redirect(new URL(next, origin));
 }
 
 
